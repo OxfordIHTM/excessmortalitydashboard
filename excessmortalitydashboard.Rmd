@@ -1,0 +1,91 @@
+---
+title: "COVID-19 Excess Mortality"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    social: menu
+    source_code: https://github.com/OxfordIHTM/excessmortalitydashboard
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+if(!require(flexdashboard)) install.packages("flexdashboard")
+if(!require(remotes)) install.packages("remotes")
+if(!require(shiny)) install.packages("shiny")
+if(!require(dplyr)) install.packages("dplyr")
+if(!require(ggplot2)) install.packages("ggplot2")
+if(!require(odktools)) remotes::install_github("rapidsurveys/odktools")
+
+Sys.setenv(ONA_TOKEN = "a1ef6918bd05348140697b2379bada6939890a19")
+
+formid <- reactive({
+  odktools::ona_list_data() %>%
+    filter(id_string == "mortalitymetadata") %>%
+    select(id)
+})
+
+metadata <- reactive({
+  odktools::ona_get_data(form_id = formid())
+})
+
+update_metadata <- eventReactive(input$data_update, {
+  odktools::ona_get_data(form_id = formid())
+})
+
+observe({
+  if(nrow(update_metadata()) > nrow(metadata())) {
+    metadata <- reactive({
+      update_metadata()
+    })
+  }
+})
+```
+
+Sidebar {.sidebar}
+================================================================================
+
+```{r}
+br()
+
+div(style="display:inline-block; vertical-align:middle; align:center",            
+    actionButton(inputId = "data_update", label = "Update data",
+                 class = "btn-primary"))
+```
+
+Summary
+================================================================================
+
+### Submissions {.value-box}
+
+```{r}
+renderValueBox({
+  valueBox(
+    value = nrow(metadata()),
+    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
+    icon = "fa-database",
+    color = "primary"
+  )
+})
+```
+
+### Countries {.value-box}
+
+```{r}
+renderValueBox({
+  valueBox(
+    value = metadata(),
+    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
+    icon = "fa-database",
+    color = "primary"
+  )
+})
+```
+
+
+Metadata
+================================================================================
+
+Row
+--------------------------------------------------------------------------------
