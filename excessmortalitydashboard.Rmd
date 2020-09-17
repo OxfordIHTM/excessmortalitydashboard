@@ -75,7 +75,7 @@ renderValueBox({
 ```{r}
 renderValueBox({
   valueBox(
-    value = metadata(),
+    value = nrow(metadata()),
     caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
     icon = "fa-database",
     color = "primary"
@@ -83,6 +83,44 @@ renderValueBox({
 })
 ```
 
+### Countries {.value-box}
+
+```{r}
+renderValueBox({
+  valueBox(
+    value = nrow(metadata()),
+    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
+    icon = "fa-database",
+    color = "primary"
+  )
+})
+```
+
+### Countries {.value-box}
+
+```{r}
+renderValueBox({
+  valueBox(
+    value = nrow(metadata()),
+    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
+    icon = "fa-database",
+    color = "primary"
+  )
+})
+```
+
+### Countries {.value-box}
+
+```{r}
+renderValueBox({
+  valueBox(
+    value = nrow(metadata()),
+    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
+    icon = "fa-database",
+    color = "primary"
+  )
+})
+```
 
 Metadata
 ================================================================================
