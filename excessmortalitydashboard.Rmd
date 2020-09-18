@@ -127,3 +127,10 @@ Metadata
 
 Row
 --------------------------------------------------------------------------------
+
+```{r}
+output$metatable <- renderDataTable({ metadata()[[1]] })
+
+DT::dataTableOutput("metatable")
+```
+
