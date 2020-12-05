@@ -19,26 +19,26 @@ if(!require(ggplot2)) install.packages("ggplot2")
 if(!require(leaflet)) install.packages("leaflet")
 if(!require(ggmap)) install.packages("ggmap")
 
-if(!require(odktools)) remotes::install_github("rapidsurveys/odktools")
+if(!require(okapi)) remotes::install_github("rapidsurveys/okapi")
 
 mapbox.leShine   <- "https://api.mapbox.com/styles/v1/ernestguevarra/cjdlr8pvl0xiv2sqvq1evk1pl/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZXJuZXN0Z3VldmFycmEiLCJhIjoiejRRLXlZdyJ9.sqS1zi0rDH5CIzvcn9SXSg"
 mapbox.satellite <- "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZXJuZXN0Z3VldmFycmEiLCJhIjoiejRRLXlZdyJ9.sqS1zi0rDH5CIzvcn9SXSg"
 mapbox.iceCream  <- "https://api.mapbox.com/styles/v1/ernestguevarra/cj81sytkq8z5g2spicbkd4hmx/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZXJuZXN0Z3VldmFycmEiLCJhIjoiejRRLXlZdyJ9.sqS1zi0rDH5CIzvcn9SXSg"
 
-Sys.setenv(ONA_TOKEN = "a1ef6918bd05348140697b2379bada6939890a19")
+ona_auth_token(token = Sys.getenv("ONA_TOKEN"))
 
 formid <- reactive({
-  odktools::ona_list_data() %>%
-    filter(id_string == "mortalitymetadata") %>%
-    select(id)
+  okapi::ona_list_data() %>%
+    dplyr::filter(id_string == "mortalitymetadata") %>%
+    dplyr::select(id)
 })
 
 metadata <- reactive({
-  odktools::ona_get_data(form_id = formid())
+  okapi::ona_get_data(form_id = formid())
 })
 
 update_metadata <- eventReactive(input$data_update, {
-  odktools::ona_get_data(form_id = formid())
+  okapi::ona_get_data(form_id = formid())
 })
 
 observe({
