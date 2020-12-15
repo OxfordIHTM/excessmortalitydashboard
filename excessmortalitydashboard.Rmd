@@ -115,7 +115,7 @@ renderValueBox({
 })
 ```
 
-Row { .tabset .tabset-fade }
+Row { .tabset .tabset-fade data-height=1000}
 --------------------------------------------------------------------------------
 
 ### Organisation
