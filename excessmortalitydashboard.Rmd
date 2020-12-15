@@ -4,7 +4,7 @@ runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_layout: fill
+    vertical_layout: scroll
     social: menu
     source_code: https://github.com/OxfordIHTM/excessmortalitydashboard
     theme: cerulean
@@ -115,7 +115,7 @@ renderValueBox({
 })
 ```
 
-Row { .tabset .tabset-fade data-height=1000}
+Row { .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
 ### Organisation
