@@ -25,6 +25,9 @@ mapbox.leShine   <- "https://api.mapbox.com/styles/v1/ernestguevarra/cjdlr8pvl0x
 mapbox.satellite <- "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZXJuZXN0Z3VldmFycmEiLCJhIjoiejRRLXlZdyJ9.sqS1zi0rDH5CIzvcn9SXSg"
 mapbox.iceCream  <- "https://api.mapbox.com/styles/v1/ernestguevarra/cj81sytkq8z5g2spicbkd4hmx/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZXJuZXN0Z3VldmFycmEiLCJhIjoiejRRLXlZdyJ9.sqS1zi0rDH5CIzvcn9SXSg"
 
+Sys.setenv(GGMAP_GOOGLE_API_KEY = "AIzaSyAAWT7emntIW5zGmvuA213hwpH-eRo2y8I")
+
+Sys.setenv(ONA_TOKEN = "a1ef6918bd05348140697b2379bada6939890a19")
 ona_auth_token(token = Sys.getenv("ONA_TOKEN"))
 
 formid <- reactive({
@@ -155,6 +158,94 @@ output$table1 <- DT::renderDT({ organisation_profile() })
 
 
 DT::DTOutput("table1")
+```
+
+### Quality
+
+```{r}
+output$quality_text <- renderText({
+  paste("Data quality processes in ", input$select_country,
+        " for mortality data.")
+})
+
+h4(textOutput("quality_text"))
+
+quality_profile <- reactive({
+  req(input$select_country)
+  y <- metadata()
+  x <- y[y$`location/country` == input$select_country, ]
+  
+  data_quality_done    <- ifelse(x$`data_quality/data_quality_done` == 1, "Yes", "No")
+  data_quality_process <- ifelse(data_quality_done == "No", NA,
+                                 x$`data_quality/data_quality_process`)
+  
+  tab <- data.frame(c("Data quality check process applied to data?", 
+                      "Description of data quality process"),
+                    c(data_quality_done, data_quality_process))
+  names(tab) <- c("Feature", "Characteristics")
+  
+  tab
+})
+
+output$table2 <- DT::renderDT({ quality_profile() })
+
+
+DT::DTOutput("table2")
+```
+
+### Disaggregation
+
+```{r}
+output$disaggregation_text <- renderText({
+  paste("Data disaggregation in ", input$select_country,
+        " for mortality data.")
+})
+
+h4(textOutput("disaggregation_text"))
+
+disaggregation_profile <- reactive({
+  req(input$select_country)
+  y <- metadata()
+  x <- y[y$`location/country` == input$select_country, ]
+  
+  data_time_interval <- ifelse(x$`data_disaggregation/data_time_interval` == 1, 
+                               "Yearly",
+                          ifelse(x$`data_disaggregation/data_time_interval` == 2, 
+                                 "Monthly",
+                            ifelse(x$`data_disaggregation/data_time_interval` == 3, 
+                                   "Weekly",
+                              ifelse(x$`data_disaggregation/data_time_interval` == 4, 
+                                     "No date/temporal information", "Don't know/not sure"))))
+
+  data_gender        <- ifelse(x$`data_disaggregation/data_gender` == 1, "Yes", "No")
+  data_age           <- ifelse(x$`data_disaggregation/data_age` == 1, "Yes", "No")
+  data_place         <- ifelse(x$`data_disaggregation/data_place` == 1, "Yes", "No")
+  data_location      <- ifelse(x$`data_disaggregation/data_location` == 1, 
+                               "Level 1 administrative unit",
+                          ifelse(x$`data_disaggregation/data_location` == 2,
+                                 "Level 2 administrative unit",
+                            ifelse(x$`data_disaggregation/data_location` == 3,
+                                   "Level 3 administrative unit",
+                              ifelse(x$`data_disaggregation/data_location` == 4,
+                                     "By some subnational unit",
+                                ifelse(x$`data_disaggregation/data_location` == 5,
+                                       "No subnational location information", "Don't know/not sure")))))
+  
+  tab <- data.frame(c("Disaggregation by time", 
+                      "Disaggregation by gender",
+                      "Disaggregation by age",
+                      "Disaggregation by place of death",
+                      "Disaggregation by location of death"),
+                    c(data_time_interval, data_gender, data_age, data_place, data_location))
+  names(tab) <- c("Feature", "Characteristics")
+  
+  tab
+})
+
+output$table3 <- DT::renderDT({ disaggregation_profile() })
+
+
+DT::DTOutput("table3")
 ```
 
 Metadata
