@@ -36,43 +36,55 @@ formid <- reactive({
 metadata <- reactive({
   okapi::ona_get_data(form_id = formid())
 })
-
-update_metadata <- eventReactive(input$data_update, {
-  okapi::ona_get_data(form_id = formid())
-})
-
-observe({
-  if(nrow(update_metadata()) > nrow(metadata())) {
-    metadata <- reactive({
-      update_metadata()
-    })
-  }
-})
 ```
 
 Sidebar {.sidebar}
 ================================================================================
 
 ```{r}
-br()
+output$country_selection <- renderUI({
+  selectInput(
+    inputId = "select_country",
+    label = "Select country",
+    choices = metadata()$`location/country`,
+    selected = NULL
+  )  
+})
 
-div(style="display:inline-block; vertical-align:middle; align:center",            
-    actionButton(inputId = "data_update", label = "Update data",
-                 class = "btn-primary"))
+uiOutput("country_selection")
 ```
 
 Summary
 ================================================================================
 
+Row
+--------------------------------------------------------------------------------
+
+### Map
+
 ```{r map}
-output$map <- renderLeaflet({
-  leaflet() %>%
-    addTiles(
-      urlTemplate = 
-    )
+country_locations <- reactive({
+  xxx <- metadata()$`location/country`
+  ggmap::geocode(location = xxx)
 })
+
+output$map <- renderLeaflet({
+  leaflet(options = leafletOptions(minZoom = 2)) %>%
+    addTiles(
+      urlTemplate = mapbox.leShine,
+      attribution = "Map by <a href='https://www.mapbox.com/'>Mapbox</a>"
+    ) %>%
+    addMarkers(lng = country_locations()$lon,
+               lat = country_locations()$lat,
+               popup = metadata()$`location/country`) %>%
+    setView(lng = 0, lat = 25, zoom = 2)
+})
+
+leafletOutput("map", height = "350px")
 ```
 
+Row
+--------------------------------------------------------------------------------
 
 ### Submissions {.value-box}
 
@@ -80,7 +92,7 @@ output$map <- renderLeaflet({
 renderValueBox({
   valueBox(
     value = nrow(metadata()),
-    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
+    caption = "Submissions",
     icon = "fa-database",
     color = "primary"
   )
@@ -92,51 +104,57 @@ renderValueBox({
 ```{r}
 renderValueBox({
   valueBox(
-    value = nrow(metadata()),
-    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
-    icon = "fa-database",
+    value = length(metadata()$`location/country`),
+    caption = "Countries",
+    icon = "fa-globe",
     color = "primary"
   )
 })
 ```
 
-### Countries {.value-box}
+Row { .tabset .tabset-fade }
+--------------------------------------------------------------------------------
+
+### Organisation
 
 ```{r}
-renderValueBox({
-  valueBox(
-    value = nrow(metadata()),
-    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
-    icon = "fa-database",
-    color = "primary"
-  )
+output$organisation_text <- renderText({
+  paste("Characteristics of organisation in ", input$select_country,
+        " responsible for mortality data.")
 })
-```
 
-### Countries {.value-box}
+h4(textOutput("organisation_text"))
 
-```{r}
-renderValueBox({
-  valueBox(
-    value = nrow(metadata()),
-    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
-    icon = "fa-database",
-    color = "primary"
-  )
+organisation_profile <- reactive({
+  req(input$select_country)
+  y <- metadata()
+  x <- y[y$`location/country` == input$select_country, ]
+  
+  organisation_type    <- ifelse(x$`organisation/organisation_type` == "ngo",
+                                 "Non-governmental organisation",
+                            ifelse(x$`organisation/organisation_type` == "uno", 
+                                   "United Nations (UN) organisation",
+                              ifelse(x$`organisation/organisation_type` == "gov",
+                                     "Government", "Other")))
+  organisation_name    <- x$`organisation/organisation_name`
+  organisation_address <- x$`organisation/organisation_contact_address`
+  organisation_phone   <- x$`organisation/organisation_contact_phone`
+  organisation_email   <- x$`organisation/organisation_contact_email`
+  organisation_website <- x$`organisation/organisation_contact_website`
+  
+  tab <- data.frame(c("Organisation Type", "Organisation Name", "Organisation Address",
+                      "Organisation Phone", "Organisation Email", "Organisation Website"),
+                    c(organisation_type, organisation_name, organisation_address,
+                      organisation_phone, organisation_email, organisation_website))
+  names(tab) <- c("Feature", "Characteristics")
+  
+  tab
 })
-```
 
-### Countries {.value-box}
+output$table1 <- DT::renderDT({ organisation_profile() })
 
-```{r}
-renderValueBox({
-  valueBox(
-    value = nrow(metadata()),
-    caption = paste("No. of submissions as at ", Sys.Date(), sep = ""),
-    icon = "fa-database",
-    color = "primary"
-  )
-})
+
+DT::DTOutput("table1")
 ```
 
 Metadata
@@ -146,8 +164,8 @@ Row
 --------------------------------------------------------------------------------
 
 ```{r}
-output$metatable <- renderDataTable({ metadata()[[1]] })
+output$metatable <- DT::renderDT({ metadata() })
 
-DT::dataTableOutput("metatable")
+DT::DTOutput("metatable")
 ```
 
